@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="My Shop">
+<meta name="description" content="Daily shop expense and sales tracker">
+<title>My Shop — Daily Tracker</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0f1a;
+  --bg2: #1a1a2e;
+  --bg3: #22223b;
+  --card: #1e1e32;
+  --card2: #252540;
+  --accent: #f4a261;
+  --accent2: #e76f51;
+  --green: #2a9d8f;
+  --green2: #52b788;
+  --red: #e63946;
+  --text: #f1f0eb;
+  --text2: #a8a6b8;
+  --text3: #6b6980;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --font-display: 'DM Serif Display', serif;
+  --font-body: 'DM Sans', sans-serif;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── LAYOUT ── */
+.app { display: flex; flex-direction: column; min-height: 100vh; max-width: 480px; margin: 0 auto; position: relative; }
+
+.top-header {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: calc(var(--safe-top) + 14px) 20px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.app-name { font-family: var(--font-display); font-size: 22px; letter-spacing: -0.3px; }
+.app-name span { color: var(--accent); }
+
+.header-date { font-size: 12px; color: var(--text2); font-weight: 300; }
+
+.content { flex: 1; overflow-y: auto; padding: 0 16px 120px; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border2);
+  display: flex; align-items: stretch;
+  padding-bottom: var(--safe-bottom);
+  z-index: 50;
+}
+
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 10px 4px; gap: 4px;
+  border: none; background: transparent; color: var(--text3);
+  font-family: var(--font-body); font-size: 10px; font-weight: 500;
+  cursor: pointer; transition: color .2s; letter-spacing: .3px;
+}
+.nav-item.active { color: var(--accent); }
+.nav-item svg { width: 22px; height: 22px; stroke-width: 1.8; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-top: 14px;
+}
+.card-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .8px; font-weight: 500; margin-bottom: 10px; }
+.card-title { font-family: var(--font-display); font-size: 19px; margin-bottom: 4px; }
+
+/* ── METRICS ── */
+.metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+
+.metric-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+.metric-label { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; color: var(--text3); font-weight: 500; margin-bottom: 6px; }
+.metric-value { font-family: var(--font-display); font-size: 22px; line-height: 1; }
+.metric-sub { font-size: 11px; color: var(--text2); margin-top: 3px; }
+
+.hero-card {
+  background: linear-gradient(135deg, #1e1e40 0%, #2a1a35 100%);
+  border: 1px solid rgba(244,162,97,0.2);
+  border-radius: var(--radius);
+  padding: 22px 20px;
+  margin-top: 14px;
+  position: relative; overflow: hidden;
+}
+.hero-card::before {
+  content: '';
+  position: absolute; top: -40px; right: -40px;
+  width: 140px; height: 140px;
+  background: radial-gradient(circle, rgba(244,162,97,.12) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.hero-profit { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; }
+.hero-amount { font-family: var(--font-display); font-size: 38px; line-height: 1; }
+.hero-amount.pos { color: var(--green2); }
+.hero-amount.neg { color: var(--red); }
+.hero-breakdown { display: flex; gap: 16px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.hero-bd-item { display: flex; flex-direction: column; gap: 2px; }
+.hero-bd-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .6px; }
+.hero-bd-value { font-size: 15px; font-weight: 600; }
+
+/* ── SECTION HEADER ── */
+.section-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 0 4px; }
+.section-title { font-size: 13px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: .6px; }
+
+/* ── EOD FORM ── */
+.eod-date-strip {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 14px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 16px;
+}
+.eod-date-label { font-size: 12px; color: var(--text2); flex: 1; }
+.eod-date-input {
+  background: transparent; border: none; color: var(--accent);
+  font-family: var(--font-body); font-size: 14px; font-weight: 600;
+  text-align: right; outline: none; cursor: pointer; width: 140px;
+}
+.eod-date-input::-webkit-calendar-picker-indicator { filter: invert(0.7) sepia(1) saturate(3) hue-rotate(5deg); }
+
+.form-section-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .8px;
+  color: var(--text3); font-weight: 600; margin: 18px 0 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.form-section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.field-group { display: flex; flex-direction: column; gap: 10px; }
+
+.field {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 0;
+  display: flex; align-items: center; overflow: hidden;
+  transition: border-color .2s;
+}
+.field:focus-within { border-color: var(--border2); }
+
+.field-prefix {
+  padding: 0 14px; font-size: 18px; font-weight: 600; color: var(--text3);
+  flex-shrink: 0; line-height: 52px; border-right: 1px solid var(--border);
+}
+.field-inner { display: flex; flex-direction: column; flex: 1; padding: 10px 14px; }
+.field-label { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; color: var(--text3); font-weight: 500; margin-bottom: 2px; }
+.field input, .field select, .field textarea {
+  background: transparent; border: none; outline: none;
+  color: var(--text); font-family: var(--font-body); font-size: 16px; font-weight: 400;
+  width: 100%;
+}
+.field textarea { resize: none; height: 58px; font-size: 14px; }
+.field select option { background: var(--bg2); }
+input[type=number]::-webkit-inner-spin-button { opacity: 0.3; }
+
+/* expense row in form */
+.exp-row {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+  display: flex; gap: 10px; align-items: center;
+}
+.exp-row-cat { flex: 1; font-size: 13px; color: var(--text2); }
+.exp-row-amount { font-size: 15px; font-weight: 600; color: var(--accent); }
+.exp-row-del { background: none; border: none; color: var(--text3); cursor: pointer; padding: 4px; line-height: 1; font-size: 18px; transition: color .15s; }
+.exp-row-del:hover { color: var(--red); }
+
+.add-expense-form {
+  background: var(--card2); border: 1px dashed var(--border2);
+  border-radius: var(--radius-sm); padding: 14px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-top: 8px;
+}
+.add-expense-form .field { background: var(--bg3); }
+.add-expense-form .span2 { grid-column: span 2; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border-radius: var(--radius-sm); font-family: var(--font-body); font-weight: 500;
+  cursor: pointer; transition: all .15s; border: none; font-size: 14px;
+}
+.btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border2); padding: 8px 14px; }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-accent { background: var(--accent); color: #1a1a2e; padding: 10px 18px; font-weight: 600; }
+.btn-accent:hover { background: var(--accent2); }
+.btn-primary { background: var(--green); color: #fff; padding: 14px; font-size: 16px; font-weight: 600; width: 100%; border-radius: var(--radius); margin-top: 10px; letter-spacing: .2px; }
+.btn-primary:hover { background: var(--green2); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-sm { font-size: 12px; padding: 6px 12px; }
+
+/* ── LOG LIST ── */
+.log-item {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 18px; margin-top: 10px;
+  cursor: pointer; transition: border-color .2s;
+}
+.log-item:hover { border-color: var(--border2); }
+.log-item-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+.log-date { font-family: var(--font-display); font-size: 16px; }
+.log-profit { font-size: 14px; font-weight: 600; }
+.log-profit.pos { color: var(--green2); }
+.log-profit.neg { color: var(--red); }
+.log-bars { display: flex; gap: 12px; }
+.log-bar-item { display: flex; flex-direction: column; gap: 3px; }
+.log-bar-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; }
+.log-bar-val { font-size: 13px; font-weight: 500; }
+.log-bar-val.sales { color: var(--green2); }
+.log-bar-val.expense { color: var(--accent); }
+
+.log-detail-exps { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); display: none; flex-direction: column; gap: 5px; }
+.log-detail-exps.open { display: flex; }
+.log-exp-pill { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); padding: 3px 0; }
+.log-exp-pill span:last-child { color: var(--text); font-weight: 500; }
+
+/* ── CATEGORY PILL ── */
+.cat-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500;
+}
+
+/* ── CHARTS ── */
+.bar-container { margin-top: 6px; }
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.bar-label { width: 90px; font-size: 11px; color: var(--text2); text-align: right; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-track { flex: 1; height: 7px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width .5s; }
+.bar-val { width: 70px; font-size: 11px; color: var(--text2); text-align: right; flex-shrink: 0; }
+
+.trend-row { display: flex; align-items: flex-end; gap: 6px; height: 80px; margin-top: 8px; }
+.trend-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.trend-bar-wrap { flex: 1; display: flex; align-items: flex-end; width: 100%; }
+.trend-bar { width: 100%; border-radius: 4px 4px 0 0; min-height: 3px; transition: height .5s; }
+.trend-month { font-size: 9px; color: var(--text3); text-transform: uppercase; }
+
+/* ── MISC ── */
+.empty { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 13px; }
+.empty svg { width: 40px; height: 40px; stroke: var(--text3); margin: 0 auto 10px; display: block; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; }
+.delete-btn { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 20px; line-height: 1; padding: 2px; }
+.delete-btn:hover { color: var(--red); }
+.divider { height: 1px; background: var(--border); margin: 14px 0; }
+.toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--green); color: #fff; padding: 10px 22px; border-radius: 30px; font-size: 13px; font-weight: 500; z-index: 200; opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-sheet { background: var(--bg2); border-radius: 20px 20px 0 0; padding: 20px 20px calc(20px + var(--safe-bottom)); width: 100%; max-width: 480px; transform: translateY(100%); transition: transform .3s; }
+.modal-overlay.open .modal-sheet { transform: translateY(0); }
+.modal-title { font-family: var(--font-display); font-size: 19px; margin-bottom: 16px; }
+.modal-detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.modal-detail-row:last-child { border-bottom: none; }
+.modal-detail-label { color: var(--text2); }
+.pill { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.pill-green { background: rgba(82,183,136,.2); color: var(--green2); }
+.pill-red { background: rgba(230,57,70,.15); color: var(--red); }
+.pill-amber { background: rgba(244,162,97,.15); color: var(--accent); }
+
+/* ── SETTINGS ── */
+.settings-section { margin-top: 20px; }
+.settings-title { font-size: 11px; text-transform: uppercase; letter-spacing: .8px; color: var(--text3); font-weight: 600; margin-bottom: 10px; }
+.settings-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; }
+.settings-item-label { font-size: 14px; }
+.settings-item-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
+.settings-action { font-size: 13px; color: var(--accent); cursor: pointer; font-weight: 500; }
+.cat-manager { display: flex; flex-direction: column; gap: 8px; }
+.cat-edit-row { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; }
+.cat-color-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.cat-edit-name { flex: 1; font-size: 13px; }
+.add-cat-row { display: flex; gap: 8px; margin-top: 8px; }
+.add-cat-row input { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; color: var(--text); font-family: var(--font-body); font-size: 14px; outline: none; }
+.add-cat-row input::placeholder { color: var(--text3); }
+.color-swatch { width: 36px; height: 36px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); cursor: pointer; }
+.color-swatch input { width: 100%; height: 100%; border: none; padding: 0; cursor: pointer; background: none; }
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f5f4f0; --bg2: #edecea; --bg3: #e5e4e0;
+    --card: #ffffff; --card2: #f0efe9;
+    --accent: #c85a1e; --accent2: #a84318;
+    --green: #1a7a6e; --green2: #1d7d5a;
+    --red: #c0392b; --text: #1a1a2e;
+    --text2: #5a5870; --text3: #9a98b0;
+    --border: rgba(0,0,0,0.07); --border2: rgba(0,0,0,0.14);
+  }
+  .hero-card { background: linear-gradient(135deg, #fff8f2 0%, #fff2f0 100%); }
+  .eod-date-input::-webkit-calendar-picker-indicator { filter: none; }
+}
+</style>
+
+<script>
+// Inline manifest
+const manifestData = {
+  "name": "My Shop Tracker",
+  "short_name": "My Shop",
+  "description": "Daily shop expense and sales tracker",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0f1a",
+  "theme_color": "#1a1a2e",
+  "icons": [
+    {"src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAI40lEQVR4nO3db2xV9R3H8W97a1vaAlaEQUUHsRRbocQhSqLN3NQMTdw0mPgn0Y1gfLTEP/EBMTExmTH4RB5siZpI0C1LjdFtWQh7MkTUxXUMFZA2VAEtWP5oHZaCIrbXB+aM9nLvOb/z53fO79zv+/Ws7ek5v3vz/fy+v3PO/SMCAAAAAAAAAAAAVKEaGzsd++Oaoo39Ai33b0q0ZhPbGUWPtCURhtg7oPCRtThBqI1zYIofLohTh5EDQPHDJVHrMVIAKH64KEpdhg4AxQ+Xha3PUAGg+JEHYeo01kkwkHfGAWD2R56Y1isdAKoRAKhmFACWP8gjk7qlA0A1AgDVCABUIwBQjQBANQIA1YwCkPTb0IA0mNQtHQCqEQCoZhwAlkHIE9N6pQNAtVABoAsgD8LUaegOQAjgsrD1GToAbW3dxY51O8P+G2Bdx7qd0tbWbe89waUHA1wRtR5DBaA0XYQALiitwzBdINR6yW/Hg+uXh9kVEJvfBDw8vNuothMLwGSEAbaYrjoSD0DYkwsgayYh4EYYVCMAUI0AQDUCANWMAsAJMPLIpG7pAFCNAEA1AgDVCABUIwBQjQBANQIA1QgAVCMAUI0AQDUCANUIAFQjAFCNAEA1AgDVCABUIwBQjQBANQIA1QgAVCMAUI0AQDUCANUIAFQjAFCNAEA1AgDVCABUIwBQjQBANQIA1QgAVCMAUI0AQLW6rAdQzuD65X1Zj6HadKzbeW3WY3CR0Rdlp/UdYRS+fdqCEPRl2SyBoJozAWD2TwfP81TOBADIAgGAagQAqhEAqOZMALRdnssKz/NUzgQAyIJTN8I8XKpLntaZP+hGmJMBAJLCnWDABwGAagQAqhEAqEYAoBoBgGoEAKoRAKhGAKAaAYBqBACqOfmxKAMDb7+c9Riy0NnZ8+usx6CNUy+G01r4pQhCcngxHODDmQAw+5/Dc5EeZwIAZMHJk2Dkx4W/WxP6f048scnCSKIhADAWpdhN95NVKAgAfCVV9GGOk2YYuAzqIBcug6ZV+H6SCELQZVA6AKZwofA93lhsdgSnOoBHayfIcuZ3qfAriRIEPhYFvvJQ+KXCBIE7wagoj8Uvkuy46QAK5bXwywnqBnQATFFNxS8S//EQAEWqrfg9cR4XAVCiWovfE/XxEQAFqr34PVEeJwGoclqK3xP28RKAKqat+D1hHjcBqFJai99j+vidvA+g9aUQJkxeLqG9+CfrX/tIfl4KQeGbqxQEiv98fiFgCQTVnAkAs3845Z4vZv/yujZuqLiCcSYAiIfi91cpBAQAqhGAKsDsb6ZcFyAAUM2ZALjwRvA88Z4vZv9wSrsAb4qHkfuvvEountZs9RgDI8flHwcHrR6jlFM3wjxcEq1scqdMa/Zf1DpL/nbHfdaP89t//l22DR2wfhyRczfHnOwALIfcsmbJcuvHGBo9IdsPHbR+nFLOnAMgnLRm/zlNzXLr5YutH+dP/e/LRDG9hYZ3LuBkB4A7bvxxuxw+OXre7+sLBZnV2CSNdWYl9M34d3Jk7GTZv50Z/07+Otgfa5xREQD46h3YJb0Du8r+rVBbKz+Z0yaPrrheumfP9d1PsViUeze/IqNnztgYZmQsgXLIlUuf4xMTsuPoYfnNltfko/+N+G47re4CWbWwI6WRmenauKFIB4CRjtaLpaW+vuLft366Xxa1zvLdx88vu1w+9gnKV2e+kf0nvow8xigIAAJd2NAovbfdbbzer6Rn/gLpmb+g4t+f6dueegBYAiHQPZ3LYhd/kLGz38rrg3utHqMcAgBfDYU6ubdrmfXjvL7vQzl19lvrxylFAHIm7RPgX7Z3ykWNTVaPMV4syp/7P7B6jEo4B4CvN4b2S9+RQ4Hbdc+eK8/8dJXvNpv27JRX9+057/dnJ8Yr3iOwjQDA18jXp2Xk69O+29TW1MiT190YuK+/fLRXhkZPJDSyZBAAxDKnqVkeX/kzuXbepb7bbTmwTw6kfIXHhFEAhod31/AdAXpdP3+B3NmxZMrv6gsFmdPULIsvmi21Nf4vKj58clTW9223OcTI6AAIdNmMmXLzgvZI/7v3i+Py8BubA5dRWSEAsOL46VOyac9/pXdgt5ydGM96OBURACTuyNhJefrfb8q2of3i+rqZ+wBI3LyW6fL7m26TF1etltbGaVkPx5dxAIK+bAwotbLtUnnpljtlen1D1kOpiCUQAr116KAcOzX2/59nNjTKJS0z5BcLO2ThzFbf/21vnSVP9dwsD23dbHuYkYSa1bkUmj1X3gsg8sMNsLuu6JbHV94QeCn0sW1bUv/EBxOhzgFYBmGyiWJRegd2yR/eezdw28eu6ZH6QiGFUYXDSXDOBH0xdBZe3L1D+keO+24zt3m63HVFd0ojMhc6AHQBlBovFuXZHe8Ebrd26dXSUHDrtJMOgES8Ozwk7x8b9t1mdlOzrF58ZUojMhMpAHQBlPPcB32B2zywdIVcUOvOuQAdAIn512efyp7Pj/pu86PmFlnd4U4XiBwAukB2XDwR9hh1ge4VUleb/dzbv/aRmuxHgaqy/dBBGQi4IjSvZbrcvqgrpRH5ixUAugDKeX7XfwK3eXDZNVJwoAvEHgEhyIbLy6Ctn3wc+Elxl7TMkF+1d6Y0ovN5H4+efQRRdYoi8oLBuYALXSCx2ZvXCWXDpdcG5cXkb45PLH4shZBHifYfQpA+l88FXDR59hexcA5ACJAnVs5ACEG66AJmSmd/EYtXgQgB8sDqNShCkB66gL9ys79ICvcBCEF6CEF5lYpfJKUbYYQArkq9MLlhZh83x87xm/1FMngpBN3APpZCPwgqfpEMOsBkdAO7NHcCk+IXyTgAHoJgj8YQmBa/iCMB8BAEOzSFIEzxizgWAA9BSJ6GEIQtfhFHAzAZYUhONYcgSvGL5CAA5RCK6KoxBFGLXySnAUA8XRs3VM0EEqf4RQiAankOQtzC9/CeYMWSKqK0JTnuXD4BSF4euoGNwBIATOFiEGx2KgKAslwIQhpLNAIAX1kEIc1zEwIAYzbDkNUJ+fePs44RAcSLtgAAAABJRU5ErkJggg==", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "data:image/png;base64,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", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+};
+const manifestBlob = new Blob([JSON.stringify(manifestData)], {type:'application/json'});
+const manifestURL = URL.createObjectURL(manifestBlob);
+document.querySelector('link[rel="manifest"]').href = manifestURL;
+
+// Inline apple touch icon
+document.querySelector('link[rel="apple-touch-icon"]').href = 'data:image/png;base64,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';
+
+// Inline service worker
+if ('serviceWorker' in navigator) {
+  const swCode = "\nconst CACHE = 'myshop-v1';\nself.addEventListener('install', e => { e.waitUntil(self.skipWaiting()); });\nself.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });\nself.addEventListener('fetch', e => {\n  e.respondWith(\n    caches.match(e.request).then(cached => {\n      if (cached) return cached;\n      return fetch(e.request).then(res => {\n        if (res && res.status === 200) {\n          const clone = res.clone();\n          caches.open('myshop-v1').then(c => c.put(e.request, clone));\n        }\n        return res;\n      }).catch(() => cached);\n    })\n  );\n});\n";
+  const swBlob = new Blob([swCode], {type:'application/javascript'});
+  const swURL = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swURL, {scope:'./'}). then(() => console.log('SW registered')).catch(e => console.log('SW:', e));
+}
+</script>
+</head>
+<body>
+<div class="app">
+  <header class="top-header">
+    <div>
+      <div class="app-name">My <span>Shop</span></div>
+      <div class="header-date" id="headerDate"></div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="exportCSV()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:15px;height:15px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      Export
+    </button>
+  </header>
+
+  <main class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <div id="page-dashboard">
+      <div class="hero-card" id="heroCard">
+        <div class="hero-profit">Today's Net</div>
+        <div class="hero-amount" id="heroAmount">₹0</div>
+        <div class="hero-breakdown">
+          <div class="hero-bd-item">
+            <div class="hero-bd-label">Sales</div>
+            <div class="hero-bd-value" id="heroSales" style="color:var(--green2)">₹0</div>
+          </div>
+          <div class="hero-bd-item">
+            <div class="hero-bd-label">Expenses</div>
+            <div class="hero-bd-value" id="heroExp" style="color:var(--accent)">₹0</div>
+          </div>
+          <div class="hero-bd-item">
+            <div class="hero-bd-label">Online</div>
+            <div class="hero-bd-value" id="heroOnline" style="color:var(--text2)">₹0</div>
+          </div>
+          <div class="hero-bd-item">
+            <div class="hero-bd-label">Cash</div>
+            <div class="hero-bd-value" id="heroCash" style="color:var(--text2)">₹0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="metrics-grid" id="metricsGrid"></div>
+
+      <div class="section-header">
+        <div class="section-title">6-month trend</div>
+      </div>
+      <div class="card" style="padding:16px">
+        <div class="trend-row" id="trendRow"></div>
+        <div class="bar-container" id="trendLegend" style="margin-top:14px"></div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">Top expense categories</div>
+      </div>
+      <div class="card" style="padding:16px">
+        <div class="bar-container" id="catBars"></div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">Recent entries</div>
+        <button class="btn btn-ghost btn-sm" onclick="switchPage('log')">See all</button>
+      </div>
+      <div id="recentList"></div>
+    </div>
+
+    <!-- ── EOD ENTRY ── -->
+    <div id="page-eod" style="display:none">
+      <div class="section-header" style="padding-top:14px">
+        <div class="section-title">EOD Entry</div>
+      </div>
+
+      <div class="eod-date-strip">
+        <div class="eod-date-label">📅 Entry date</div>
+        <input type="date" class="eod-date-input" id="eodDate">
+      </div>
+
+      <div class="form-section-label">Sales</div>
+      <div class="field-group">
+        <div class="field">
+          <div class="field-prefix">₹</div>
+          <div class="field-inner">
+            <div class="field-label">Online / UPI Payment</div>
+            <input type="number" id="saleOnline" placeholder="0" min="0" inputmode="decimal">
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-prefix">₹</div>
+          <div class="field-inner">
+            <div class="field-label">Liquid Cash Received</div>
+            <input type="number" id="saleCash" placeholder="0" min="0" inputmode="decimal">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section-label">Expenses</div>
+
+      <div id="expenseRowsContainer"></div>
+
+      <div class="add-expense-form" id="addExpForm">
+        <div class="field span2">
+          <div class="field-inner">
+            <div class="field-label">Description</div>
+            <input type="text" id="newExpDesc" placeholder="What was this for?" autocomplete="off">
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-inner">
+            <div class="field-label">Category</div>
+            <select id="newExpCat"></select>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-prefix" style="font-size:14px;line-height:40px;padding:0 10px">₹</div>
+          <div class="field-inner">
+            <div class="field-label">Amount</div>
+            <input type="number" id="newExpAmount" placeholder="0" min="0" inputmode="decimal">
+          </div>
+        </div>
+        <button class="btn btn-ghost span2" onclick="addExpRow()" style="justify-content:center;gap:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:15px;height:15px"><path d="M12 5v14M5 12h14"/></svg>
+          Add expense line
+        </button>
+      </div>
+
+      <div class="form-section-label">Notes</div>
+      <div class="field">
+        <div class="field-inner">
+          <div class="field-label">Anything to note for today?</div>
+          <textarea id="eodNotes" placeholder="Optional..."></textarea>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="saveEOD()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:18px;height:18px"><path d="M20 6L9 17l-5-5"/></svg>
+        Save EOD Entry
+      </button>
+
+      <div style="height:10px"></div>
+    </div>
+
+    <!-- ── LOG ── -->
+    <div id="page-log" style="display:none">
+      <div class="section-header" style="padding-top:14px">
+        <div class="section-title">All Entries</div>
+        <div style="font-size:12px;color:var(--text3)" id="logCount"></div>
+      </div>
+      <div id="logList"></div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div id="page-settings" style="display:none">
+      <div class="settings-section">
+        <div class="settings-title">Shop</div>
+        <div class="settings-item">
+          <div>
+            <div class="settings-item-label">Shop name</div>
+            <div class="settings-item-sub" id="shopNameDisplay">My Shop</div>
+          </div>
+          <div class="settings-action" onclick="editShopName()">Edit</div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-title">Categories</div>
+        <div class="cat-manager" id="catManager"></div>
+        <div class="add-cat-row">
+          <input type="text" id="newCatName" placeholder="New category name...">
+          <div class="color-swatch"><input type="color" id="newCatColor" value="#f4a261"></div>
+          <button class="btn btn-accent btn-sm" onclick="addCategory()">Add</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-title">Data</div>
+        <div class="settings-item">
+          <div>
+            <div class="settings-item-label">Export all data</div>
+            <div class="settings-item-sub">Download as CSV spreadsheet</div>
+          </div>
+          <div class="settings-action" onclick="exportCSV()">Export</div>
+        </div>
+        <div class="settings-item">
+          <div>
+            <div class="settings-item-label">Clear all data</div>
+            <div class="settings-item-sub">Cannot be undone</div>
+          </div>
+          <div class="settings-action" style="color:var(--red)" onclick="clearAllData()">Clear</div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-title">Install as app</div>
+        <div class="settings-item">
+          <div>
+            <div class="settings-item-label">Add to Home Screen</div>
+            <div class="settings-item-sub">iPhone: Share → Add to Home Screen<br>Android: Menu → Add to Home Screen</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:18px;height:18px;stroke:var(--text3)"><path d="M12 2v13M7 7l5-5 5 5M3 14v3a3 3 0 003 3h12a3 3 0 003-3v-3"/></svg>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:24px 0;font-size:11px;color:var(--text3)">
+        My Shop Tracker · v1.0<br>Data stored locally on this device
+      </div>
+    </div>
+
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-dashboard" onclick="switchPage('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" id="nav-eod" onclick="switchPage('eod')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      EOD Entry
+    </button>
+    <button class="nav-item" id="nav-log" onclick="switchPage('log')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      Log
+    </button>
+    <button class="nav-item" id="nav-settings" onclick="switchPage('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </button>
+  </nav>
+</div>
+
+<!-- Detail modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal-sheet">
+    <div class="modal-title" id="modalTitle"></div>
+    <div id="modalBody"></div>
+    <button class="btn btn-ghost" style="width:100%;margin-top:16px;justify-content:center" onclick="closeModal()">Close</button>
+    <button class="btn" style="width:100%;margin-top:8px;background:rgba(230,57,70,.12);color:var(--red);border:1px solid rgba(230,57,70,.2);justify-content:center" onclick="deleteEntry()">Delete this entry</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────
+let state = {
+  entries: [],
+  categories: [],
+  shopName: 'My Shop',
+};
+let pendingExpenseRows = [];
+let openEntryId = null;
+let currentPage = 'dashboard';
+
+const CAT_COLORS = ['#f4a261','#2a9d8f','#e76f51','#457b9d','#a8dadc','#52b788','#c77dff','#fb8500'];
+
+function defaultCategories() {
+  return [
+    { id: 'c1', name: 'Stock / Inventory', color: '#f4a261' },
+    { id: 'c2', name: 'Rent & Utilities', color: '#457b9d' },
+    { id: 'c3', name: 'Salary & Labour', color: '#e76f51' },
+    { id: 'c4', name: 'Transport', color: '#2a9d8f' },
+    { id: 'c5', name: 'Repairs', color: '#c77dff' },
+    { id: 'c6', name: 'Miscellaneous', color: '#888' },
+  ];
+}
+
+// ─── STORAGE ─────────────────────────────────────────────────────────
+function loadState() {
+  try {
+    const saved = localStorage.getItem('myshop_v1');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      state.entries = parsed.entries || [];
+      state.categories = parsed.categories || defaultCategories();
+      state.shopName = parsed.shopName || 'My Shop';
+    } else {
+      state.categories = defaultCategories();
+    }
+  } catch(e) {
+    state.categories = defaultCategories();
+  }
+}
+
+function saveState() {
+  localStorage.setItem('myshop_v1', JSON.stringify(state));
+}
+
+// ─── UTILITIES ───────────────────────────────────────────────────────
+function uid() { return 'e' + Date.now() + Math.random().toString(36).slice(2,6); }
+function fmtINR(n) { return '₹' + Number(n||0).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+function getCat(id) { return state.categories.find(c => c.id === id) || { name: id, color: '#888' }; }
+function todayISO() { return new Date().toISOString().slice(0,10); }
+function fmtDate(iso) {
+  if (!iso) return '';
+  const [y,m,d] = iso.split('-');
+  const dt = new Date(+y, +m-1, +d);
+  return dt.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+}
+function monthKey(iso) { return iso ? iso.slice(0,7) : ''; }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ─── PAGE NAVIGATION ─────────────────────────────────────────────────
+const PAGES = ['dashboard','eod','log','settings'];
+function switchPage(page) {
+  currentPage = page;
+  PAGES.forEach(p => {
+    document.getElementById('page-'+p).style.display = p === page ? '' : 'none';
+    document.getElementById('nav-'+p)?.classList.toggle('active', p === page);
+  });
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'eod') initEOD();
+  if (page === 'log') renderLog();
+  if (page === 'settings') renderSettings();
+  document.querySelector('.content').scrollTop = 0;
+}
+
+// ─── EOD ENTRY ───────────────────────────────────────────────────────
+function initEOD() {
+  document.getElementById('eodDate').value = todayISO();
+  document.getElementById('saleOnline').value = '';
+  document.getElementById('saleCash').value = '';
+  document.getElementById('eodNotes').value = '';
+  pendingExpenseRows = [];
+  renderExpenseRows();
+  populateCatSelect('newExpCat');
+}
+
+function renderExpenseRows() {
+  const container = document.getElementById('expenseRowsContainer');
+  if (!pendingExpenseRows.length) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = pendingExpenseRows.map((row, i) => {
+    const cat = getCat(row.catId);
+    return `<div class="exp-row" style="margin-bottom:8px">
+      <div style="width:10px;height:10px;border-radius:50%;background:${cat.color};flex-shrink:0"></div>
+      <div class="exp-row-cat">${row.desc || cat.name}<br><span style="font-size:11px;color:var(--text3)">${cat.name}</span></div>
+      <div class="exp-row-amount">${fmtINR(row.amount)}</div>
+      <button class="exp-row-del" onclick="removeExpRow(${i})" aria-label="Remove">×</button>
+    </div>`;
+  }).join('');
+}
+
+function addExpRow() {
+  const desc = document.getElementById('newExpDesc').value.trim();
+  const catId = document.getElementById('newExpCat').value;
+  const amount = parseFloat(document.getElementById('newExpAmount').value);
+  if (!catId || !amount || isNaN(amount) || amount <= 0) {
+    showToast('Enter category and amount');
+    return;
+  }
+  pendingExpenseRows.push({ id: uid(), desc: desc || '', catId, amount });
+  document.getElementById('newExpDesc').value = '';
+  document.getElementById('newExpAmount').value = '';
+  renderExpenseRows();
+}
+
+function removeExpRow(i) {
+  pendingExpenseRows.splice(i, 1);
+  renderExpenseRows();
+}
+
+function saveEOD() {
+  const date = document.getElementById('eodDate').value;
+  if (!date) { showToast('Pick a date'); return; }
+  const online = parseFloat(document.getElementById('saleOnline').value) || 0;
+  const cash = parseFloat(document.getElementById('saleCash').value) || 0;
+  const notes = document.getElementById('eodNotes').value.trim();
+  if (online === 0 && cash === 0 && pendingExpenseRows.length === 0) {
+    showToast('Add at least one sale or expense'); return;
+  }
+  // check for duplicate date
+  const existing = state.entries.findIndex(e => e.date === date);
+  const entry = {
+    id: existing >= 0 ? state.entries[existing].id : uid(),
+    date, online, cash, notes,
+    expenses: [...pendingExpenseRows],
+    savedAt: new Date().toISOString(),
+  };
+  if (existing >= 0) {
+    state.entries[existing] = entry;
+    showToast('Entry updated ✓');
+  } else {
+    state.entries.push(entry);
+    showToast('EOD saved ✓');
+  }
+  saveState();
+  pendingExpenseRows = [];
+  switchPage('dashboard');
+}
+
+function populateCatSelect(elId, selected) {
+  const sel = document.getElementById(elId);
+  if (!sel) return;
+  sel.innerHTML = state.categories.map(c =>
+    `<option value="${c.id}"${c.id===selected?' selected':''}>${c.name}</option>`
+  ).join('');
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────
+function renderDashboard() {
+  const today = todayISO();
+  const todayEntry = state.entries.find(e => e.date === today);
+
+  // Hero card
+  const tSales = todayEntry ? (todayEntry.online + todayEntry.cash) : 0;
+  const tExp = todayEntry ? todayEntry.expenses.reduce((s,e) => s+e.amount, 0) : 0;
+  const tNet = tSales - tExp;
+  const heroEl = document.getElementById('heroAmount');
+  heroEl.textContent = fmtINR(Math.abs(tNet));
+  heroEl.className = 'hero-amount ' + (tNet >= 0 ? 'pos' : 'neg');
+  if (tNet < 0) heroEl.textContent = '−' + fmtINR(Math.abs(tNet));
+  document.getElementById('heroSales').textContent = fmtINR(tSales);
+  document.getElementById('heroExp').textContent = fmtINR(tExp);
+  document.getElementById('heroOnline').textContent = fmtINR(todayEntry?.online || 0);
+  document.getElementById('heroCash').textContent = fmtINR(todayEntry?.cash || 0);
+
+  // Metrics
+  const allSales = state.entries.reduce((s,e) => s+(e.online+e.cash), 0);
+  const allExp = state.entries.reduce((s,e) => s+e.expenses.reduce((x,ex)=>x+ex.amount,0), 0);
+  const allNet = allSales - allExp;
+  const thisMonth = today.slice(0,7);
+  const mEntries = state.entries.filter(e => e.date.startsWith(thisMonth));
+  const mSales = mEntries.reduce((s,e) => s+(e.online+e.cash), 0);
+  const mExp = mEntries.reduce((s,e) => s+e.expenses.reduce((x,ex)=>x+ex.amount,0), 0);
+  document.getElementById('metricsGrid').innerHTML = `
+    <div class="metric-card"><div class="metric-label">This month sales</div><div class="metric-value" style="color:var(--green2)">${fmtINR(mSales)}</div></div>
+    <div class="metric-card"><div class="metric-label">This month expenses</div><div class="metric-value" style="color:var(--accent)">${fmtINR(mExp)}</div></div>
+    <div class="metric-card"><div class="metric-label">All-time net</div><div class="metric-value" style="color:${allNet>=0?'var(--green2)':'var(--red)'}">${allNet<0?'−':''}${fmtINR(Math.abs(allNet))}</div></div>
+    <div class="metric-card"><div class="metric-label">Days logged</div><div class="metric-value">${state.entries.length}</div></div>
+  `;
+
+  // 6-month trend
+  const now = new Date();
+  const months = [];
+  for (let i=5; i>=0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const key = d.toISOString().slice(0,7);
+    const label = d.toLocaleString('en-IN', { month:'short' });
+    const ents = state.entries.filter(e => e.date.startsWith(key));
+    const sales = ents.reduce((s,e) => s+(e.online+e.cash), 0);
+    const exp = ents.reduce((s,e) => s+e.expenses.reduce((x,ex)=>x+ex.amount,0), 0);
+    months.push({ key, label, sales, exp });
+  }
+  const maxVal = Math.max(...months.map(m => Math.max(m.sales, m.exp)), 1);
+  const trendRow = document.getElementById('trendRow');
+  trendRow.innerHTML = months.map(m => {
+    const sh = Math.round((m.sales/maxVal)*100);
+    const eh = Math.round((m.exp/maxVal)*100);
+    return `<div class="trend-col">
+      <div class="trend-bar-wrap" style="gap:3px;align-items:flex-end">
+        <div class="trend-bar" style="background:var(--green2);opacity:.7;height:${sh}%;flex:1"></div>
+        <div class="trend-bar" style="background:var(--accent);opacity:.7;height:${eh}%;flex:1"></div>
+      </div>
+      <div class="trend-month">${m.label}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('trendLegend').innerHTML = `
+    <div style="display:flex;gap:16px;font-size:11px;color:var(--text2)">
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--green2);opacity:.7"></span>Sales</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--accent);opacity:.7"></span>Expenses</span>
+    </div>`;
+
+  // Category bars
+  const catTotals = state.categories.map(c => ({
+    ...c,
+    sum: state.entries.reduce((s,e) => s+e.expenses.filter(ex=>ex.catId===c.id).reduce((x,ex)=>x+ex.amount,0), 0)
+  })).filter(c=>c.sum>0).sort((a,b)=>b.sum-a.sum).slice(0,6);
+  const maxCat = catTotals[0]?.sum || 1;
+  document.getElementById('catBars').innerHTML = catTotals.length ? catTotals.map(c => `
+    <div class="bar-row">
+      <div class="bar-label">${c.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="background:${c.color};width:${Math.round(c.sum/maxCat*100)}%"></div></div>
+      <div class="bar-val">${fmtINR(c.sum)}</div>
+    </div>`).join('') : '<div class="empty" style="padding:20px">No expense data yet</div>';
+
+  // Recent
+  const recent = [...state.entries].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+  document.getElementById('recentList').innerHTML = recent.length
+    ? recent.map(e => logItemHTML(e)).join('')
+    : '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>No entries yet — add your first EOD!</div>';
+}
+
+// ─── LOG ─────────────────────────────────────────────────────────────
+function renderLog() {
+  const sorted = [...state.entries].sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('logCount').textContent = sorted.length + ' entries';
+  document.getElementById('logList').innerHTML = sorted.length
+    ? sorted.map(e => logItemHTML(e)).join('')
+    : '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 002-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>No entries yet</div>';
+}
+
+function logItemHTML(e) {
+  const sales = e.online + e.cash;
+  const exp = e.expenses.reduce((s,ex)=>s+ex.amount,0);
+  const net = sales - exp;
+  const netLabel = (net >= 0 ? '+' : '−') + fmtINR(Math.abs(net));
+  return `<div class="log-item" onclick="openDetail('${e.id}')">
+    <div class="log-item-header">
+      <div class="log-date">${fmtDate(e.date)}</div>
+      <div class="log-profit ${net>=0?'pos':'neg'}">${netLabel}</div>
+    </div>
+    <div class="log-bars">
+      <div class="log-bar-item"><div class="log-bar-label">Sales</div><div class="log-bar-val sales">${fmtINR(sales)}</div></div>
+      <div class="log-bar-item"><div class="log-bar-label">Expenses</div><div class="log-bar-val expense">${fmtINR(exp)}</div></div>
+      <div class="log-bar-item"><div class="log-bar-label">Online</div><div class="log-bar-val" style="color:var(--text2)">${fmtINR(e.online)}</div></div>
+      <div class="log-bar-item"><div class="log-bar-label">Cash</div><div class="log-bar-val" style="color:var(--text2)">${fmtINR(e.cash)}</div></div>
+    </div>
+  </div>`;
+}
+
+function openDetail(id) {
+  const e = state.entries.find(x=>x.id===id);
+  if (!e) return;
+  openEntryId = id;
+  const sales = e.online + e.cash;
+  const exp = e.expenses.reduce((s,ex)=>s+ex.amount,0);
+  const net = sales - exp;
+  document.getElementById('modalTitle').textContent = fmtDate(e.date);
+  const pillClass = net >= 0 ? 'pill-green' : 'pill-red';
+  const netLabel = (net >= 0 ? '+' : '−') + fmtINR(Math.abs(net));
+  let body = `
+    <div class="modal-detail-row"><span class="modal-detail-label">Net P&L</span><span class="pill ${pillClass}">${netLabel}</span></div>
+    <div class="modal-detail-row"><span class="modal-detail-label">Total Sales</span><span>${fmtINR(sales)}</span></div>
+    <div class="modal-detail-row"><span class="modal-detail-label">Online / UPI</span><span style="color:var(--green2)">${fmtINR(e.online)}</span></div>
+    <div class="modal-detail-row"><span class="modal-detail-label">Cash</span><span style="color:var(--green2)">${fmtINR(e.cash)}</span></div>
+    <div class="modal-detail-row"><span class="modal-detail-label">Total Expenses</span><span style="color:var(--accent)">${fmtINR(exp)}</span></div>`;
+  if (e.expenses.length) {
+    body += e.expenses.map(ex => {
+      const cat = getCat(ex.catId);
+      return `<div class="modal-detail-row" style="padding-left:12px">
+        <span style="color:var(--text3);font-size:13px">${ex.desc || cat.name} <span class="pill pill-amber" style="font-size:10px">${cat.name}</span></span>
+        <span style="font-size:13px">${fmtINR(ex.amount)}</span>
+      </div>`;
+    }).join('');
+  }
+  if (e.notes) body += `<div class="modal-detail-row"><span class="modal-detail-label">Notes</span><span style="color:var(--text2);font-size:13px">${e.notes}</span></div>`;
+  document.getElementById('modalBody').innerHTML = body;
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('detailModal').classList.remove('open');
+  openEntryId = null;
+}
+
+function deleteEntry() {
+  if (!openEntryId) return;
+  if (!confirm('Delete this entry?')) return;
+  state.entries = state.entries.filter(e => e.id !== openEntryId);
+  saveState();
+  closeModal();
+  showToast('Entry deleted');
+  if (currentPage === 'log') renderLog();
+  else renderDashboard();
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────
+function renderSettings() {
+  document.getElementById('shopNameDisplay').textContent = state.shopName;
+  const cm = document.getElementById('catManager');
+  cm.innerHTML = state.categories.map(c => `
+    <div class="cat-edit-row">
+      <div class="cat-color-dot" style="background:${c.color}"></div>
+      <div class="cat-edit-name">${c.name}</div>
+      <button class="delete-btn" onclick="deleteCategory('${c.id}')" aria-label="Delete category">×</button>
+    </div>`).join('');
+}
+
+function editShopName() {
+  const name = prompt('Shop name:', state.shopName);
+  if (name && name.trim()) {
+    state.shopName = name.trim();
+    saveState();
+    renderSettings();
+    document.querySelector('.app-name').innerHTML = state.shopName.replace(/(\S+)$/, '<span>$1</span>');
+  }
+}
+
+function addCategory() {
+  const name = document.getElementById('newCatName').value.trim();
+  const color = document.getElementById('newCatColor').value;
+  if (!name) { showToast('Enter a category name'); return; }
+  if (state.categories.find(c=>c.name.toLowerCase()===name.toLowerCase())) { showToast('Already exists'); return; }
+  state.categories.push({ id: 'c'+Date.now(), name, color });
+  document.getElementById('newCatName').value = '';
+  saveState();
+  renderSettings();
+  showToast('Category added');
+}
+
+function deleteCategory(id) {
+  const inUse = state.entries.some(e => e.expenses.some(ex => ex.catId===id));
+  if (inUse) { showToast('In use — cannot delete'); return; }
+  state.categories = state.categories.filter(c => c.id !== id);
+  saveState();
+  renderSettings();
+}
+
+// ─── EXPORT ──────────────────────────────────────────────────────────
+function exportCSV() {
+  const rows = [['Date','Online Sales','Cash Sales','Total Sales','Total Expenses','Net P&L','Expense Details','Notes']];
+  [...state.entries].sort((a,b)=>a.date.localeCompare(b.date)).forEach(e => {
+    const sales = e.online + e.cash;
+    const exp = e.expenses.reduce((s,ex)=>s+ex.amount,0);
+    const details = e.expenses.map(ex=>`${ex.desc||getCat(ex.catId).name}(${fmtINR(ex.amount)})`).join('; ');
+    rows.push([e.date, e.online, e.cash, sales, exp, sales-exp, details, e.notes||'']);
+  });
+  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = `shop-tracker-${todayISO()}.csv`;
+  a.click();
+  showToast('CSV downloaded');
+}
+
+function clearAllData() {
+  if (!confirm('Delete ALL data? This cannot be undone.')) return;
+  state.entries = [];
+  saveState();
+  showToast('All data cleared');
+  renderDashboard();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────
+loadState();
+document.getElementById('headerDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+document.querySelector('.app-name').innerHTML = state.shopName.replace(/(\S+)$/, '<span>$1</span>');
+renderDashboard();
+
+document.getElementById('detailModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// SW registered via blob above
+</script>
+</body>
+</html>
